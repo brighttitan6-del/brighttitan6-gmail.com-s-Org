@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, LiveClass } from '../types';
 import { MOCK_LIVE_CLASSES, COLORS } from '../constants';
 
@@ -8,8 +9,23 @@ interface LiveClassesViewProps {
 }
 
 const LiveClassesView: React.FC<LiveClassesViewProps> = ({ user }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [joiningClass, setJoiningClass] = useState<LiveClass | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleConfirmJoin = () => {
+    if (!joiningClass) return;
+    setIsProcessing(true);
+    
+    // Simulate payment flow
+    setTimeout(() => {
+      setIsProcessing(false);
+      const classId = joiningClass.id;
+      setJoiningClass(null);
+      navigate(`/live-room/${classId}`);
+    }, 2000);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -42,8 +58,8 @@ const LiveClassesView: React.FC<LiveClassesViewProps> = ({ user }) => {
                <img src={`https://picsum.photos/400/200?random=${session.id}`} className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition" alt="" />
                <div className="absolute top-4 left-4 flex gap-2">
                  <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded">500 MWK</span>
-                 {new Date(session.scheduledAt).getTime() < Date.now() + 3600000 && (
-                   <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded animate-pulse">STARTING SOON</span>
+                 {new Date(session.scheduledAt).getTime() < Date.now() + 86400000 && (
+                   <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded animate-pulse">UPCOMING</span>
                  )}
                </div>
                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -82,7 +98,7 @@ const LiveClassesView: React.FC<LiveClassesViewProps> = ({ user }) => {
           <div className="bg-white rounded-3xl w-full max-w-lg p-8 animate-scale-up">
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-2xl font-bold">Confirm Enrollment</h2>
-              <button onClick={() => setJoiningClass(null)} className="text-gray-400 hover:text-gray-600"><i className="fas fa-times text-xl"></i></button>
+              <button onClick={() => !isProcessing && setJoiningClass(null)} className="text-gray-400 hover:text-gray-600"><i className="fas fa-times text-xl"></i></button>
             </div>
             
             <div className="bg-gray-50 p-6 rounded-2xl mb-8">
@@ -106,8 +122,14 @@ const LiveClassesView: React.FC<LiveClassesViewProps> = ({ user }) => {
             </p>
 
             <div className="flex gap-4">
-              <button onClick={() => setJoiningClass(null)} className="flex-1 py-4 border rounded-xl font-bold text-gray-400 hover:bg-gray-50 transition">Cancel</button>
-              <button className="flex-1 py-4 bg-green-700 text-white rounded-xl font-bold hover:bg-green-800 transition shadow-lg">Confirm Payment</button>
+              <button disabled={isProcessing} onClick={() => setJoiningClass(null)} className="flex-1 py-4 border rounded-xl font-bold text-gray-400 hover:bg-gray-50 transition">Cancel</button>
+              <button 
+                disabled={isProcessing}
+                onClick={handleConfirmJoin} 
+                className="flex-1 py-4 bg-green-700 text-white rounded-xl font-bold hover:bg-green-800 transition shadow-lg flex items-center justify-center"
+              >
+                {isProcessing ? 'Processing...' : 'Confirm Payment'}
+              </button>
             </div>
           </div>
         </div>
