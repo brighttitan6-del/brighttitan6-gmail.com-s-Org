@@ -1,0 +1,8 @@
+{
+  "name": "Smartlearn Malawi",
+  "description": "A comprehensive secondary education platform for Malawian students, featuring video lessons, live classes, and mobile money payment integration.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
