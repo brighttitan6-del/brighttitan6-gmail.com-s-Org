@@ -1,21 +1,12 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const getApiKey = () => {
-  const key = process.env.API_KEY;
-  if (!key || key === "undefined" || key.length < 10) {
-    console.warn("Gemini API Key is missing or invalid. AI features will be limited.");
-    return null;
-  }
-  return key;
-};
-
+// Using the recommended way to initialize GoogleGenAI and generate content
+// Tutoring for MSCE subjects like Math and Science is a complex task, so we use gemini-3-pro-preview
 export const getAITutorHelp = async (question: string, context: string) => {
-  const apiKey = getApiKey();
-  if (!apiKey) return "The AI Tutor is currently unavailable. Please ensure the API key is configured.";
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: `You are a helpful academic tutor for a Malawian student studying ${context}. Answer the following question in a simple, clear way that aligns with the MSCE (Malawi School Certificate of Education) curriculum if applicable: ${question}`,
@@ -23,19 +14,19 @@ export const getAITutorHelp = async (question: string, context: string) => {
         temperature: 0.7,
       },
     });
-    return response.text || "I'm sorry, I couldn't generate an answer. Please try rephrasing your question.";
+    // Accessing .text as a property, not a method
+    return response.text || "I'm sorry, I couldn't generate an answer.";
   } catch (error) {
     console.error("Gemini AI Error:", error);
-    return "The AI Tutor is currently busy. Please try again in a few moments.";
+    return "The AI Tutor is resting. Please try again later.";
   }
 };
 
+// Summarization is a basic text task, so we use gemini-3-flash-preview
 export const summarizeLesson = async (lessonTitle: string, transcript: string) => {
-  const apiKey = getApiKey();
-  if (!apiKey) return { summaryPoints: ["AI summarization is unavailable without a valid API key."] };
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
-    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `Summarize the following lesson titled "${lessonTitle}" into 5 key bullet points: ${transcript}`,
@@ -52,9 +43,10 @@ export const summarizeLesson = async (lessonTitle: string, transcript: string) =
         }
       }
     });
-    return JSON.parse(response.text || "{\"summaryPoints\": []}");
+    // Accessing .text as a property and parsing the JSON result
+    return JSON.parse(response.text || "{}");
   } catch (error) {
     console.error("Gemini AI Error:", error);
-    return { summaryPoints: ["An error occurred while generating the summary. Please check back later."] };
+    return { summaryPoints: ["Summary could not be generated at this time."] };
   }
 };
